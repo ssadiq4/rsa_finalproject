@@ -20,9 +20,24 @@
 // Instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
+// pins for H Bridge (assuming EN1 is left motor and EN2 is right motor)
+const int input1 = 10;
+const int input2 = 9;
+const int EN1 = 11;
+
+const int input3 = 8;
+const int input4 = 7;
+const int EN2 = 6;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  pinMode(input1, OUTPUT); //inputs 1 and 2 control motor direction. 
+  pinMode(input2, OUTPUT);
+  pinMode(EN1, OUTPUT); //pwm signal that controls motor speed
+  pinMode(input3, OUTPUT); //inputs 3 and 4 control motor direction. 
+  pinMode(input4, OUTPUT);
+  pinMode(EN2, OUTPUT); //pwm signal that controls motor speed
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
   delay(100);
@@ -42,39 +57,42 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  //We have to reverse engineer Dr. Kraemer's code here
-  int x;
-  unsigned long startTime = millis();
-  while (1) {
-    if (rf69.available()) {
-      uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
-      uint8_t len = sizeof(buf);
-      if (rf69.recv(buf, &len)) {
-        buf[len] = 0;
-        x = buf[0];
-        Serial.println(x);
-        break;
-      }
-    }
-  }
     
-//  int x;
-//  int y;
-//  unsigned long startTime = millis();
-//  while (1) {
-//    if (rf69.available()) {
-//      uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
-//      uint8_t len = sizeof(buf);
-//      if (rf69.recv(buf, &len)) {
-//        buf[len] = 0;
-//        x = buf[0];
-//        y = buf[1];
-//        Serial.print(x);
-//        Serial.print("      ");
-//        Serial.println(y);
-//        break;
-//      }
-//    }
-//  }
+ int left;
+ int right;
+ int FB;
+  int enableSignalOne;
+  int enableSignalTwo;
+ unsigned long startTime = millis();
+ while (1) {
+   if (rf69.available()) {
+     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+     uint8_t len = sizeof(buf);
+     if (rf69.recv(buf, &len)) {
+       buf[len] = 0;
+       left = buf[0];
+       right = buf[1];
+       FB = buf[2];
+       if (FB > 0) {
+         digitalWrite(input1, HIGH);
+          digitalWrite(input2, LOW);
+          digitalWrite(input3, HIGH);
+        digitalWrite(input4, LOW);      
+        enableSignalOne = left + abs(FB);
+        enableSignalTwo = right + abs(FB);
+       } // push motor forwards if forward-back signal is positive
+       if (FB <= 0) {
+         digitalWrite(input1, HIGH);
+          digitalWrite(input2, LOW);
+          digitalWrite(input3, HIGH);
+        digitalWrite(input4, LOW);    
+        enableSignalOne = left + abs(FB);
+        enableSignalTwo = right + abs(FB);
+       } // push motor backwards if forward-back signal is negative
+       analogWrite(EN1, enableSignalOne);
+       analogWrite(EN2, enableSignalTwo);
+       break;
+     }
+   }
+ }
 }
