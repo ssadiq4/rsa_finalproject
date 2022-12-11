@@ -21,13 +21,13 @@
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 // pins for H Bridge (assuming EN1 is left motor and EN2 is right motor)
-const int input1 = 10;
-const int input2 = 9;
-const int EN1 = 11;
+const int input1 = 3;
+const int input2 = 4;
+const int EN1 = 10;
 
-const int input3 = 8;
-const int input4 = 7;
-const int EN2 = 6;
+const int input3 = 5;
+const int input4 = 6;
+const int EN2 = 9;
 
 void setup() {
   // put your setup code here, to run once:
@@ -61,16 +61,17 @@ void loop() {
   int left;
   int right;
   int FB;
-  LR = analogRead(A2) / 4;  //voltage signal ranging from 0 to 255
+  int LR = analogRead(A2) / 4;  //voltage signal ranging from 0 to 255
   FB = analogRead(A3) / 4;
   FB = FB - 127;
+  FB = FB * 1.5;
   if (LR < 128) {
-    left = LR;
+    left = LR * 0.5;
     right = 0;
   }
   if (LR >= 128) {
     left = 0;
-    right = abs(LR - 255);
+    right = abs(LR - 255)* 0.5;
   }
   int enableSignalOne;
   int enableSignalTwo;
@@ -81,17 +82,17 @@ void loop() {
     digitalWrite(input2, LOW);
     digitalWrite(input3, HIGH);
     digitalWrite(input4, LOW);
-    enableSignalOne = left + abs(FB);
-    enableSignalTwo = right + abs(FB);
   }  // push motor forwards if forward-back signal is positive
   if (FB <= 0) {
     digitalWrite(input1, LOW);
     digitalWrite(input2, HIGH);
     digitalWrite(input3, LOW);
     digitalWrite(input4, HIGH);
-    enableSignalOne = left + abs(FB);
-    enableSignalTwo = right + abs(FB);
   }  // push motor backwards if forward-back signal is negative
+  enableSignalOne = left + abs(FB);
+  enableSignalOne = constrain(enableSignalOne, 0, 255);
+  enableSignalTwo = right + abs(FB);
+  enableSignalTwo = constrain(enableSignalTwo, 0, 255);
   analogWrite(EN1, enableSignalOne);
   analogWrite(EN2, enableSignalTwo);
 
@@ -125,5 +126,4 @@ void loop() {
   //        break;
   //      }
   //    }
-}
 }
