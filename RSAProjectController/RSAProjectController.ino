@@ -10,6 +10,22 @@
 
 #include <SPI.h>
 #include <RH_RF69.h> //RF transceiver library
+#include <Wire.h> 
+#include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels 
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels 
+
+// Declaration for SSD1306 display connected using software SPI:
+//double check all of your pinouts!
+#define OLED_PICO   5
+#define OLED_CLK    6 
+#define OLED_DC     3 
+#define OLED_CS     2 
+#define OLED_RESET  4 
+Adafruit_SSD1306 display(OLED_PICO, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS); 
+
+float velo;
+float dist;
 
 const int CS_pin = 7;
 const int INT_pin = 2;
@@ -31,6 +47,14 @@ int right;
 
 void setup() {
   // put your setup code here, to run once:
+
+  // initialize display and set text style and cursor
+  display.begin(SSD1306_SWITCHCAPVCC);
+  display.clearDisplay();
+  display.setTextColor(WHITE); 
+  display.setCursor(10, 10);
+  display.setTextSize(2); 
+
   pinMode(RST_pin, OUTPUT);
   digitalWrite(RST_pin, LOW); //initializing RST pin
 
@@ -62,6 +86,35 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  //we must figure out how to time the transmitting and receiving of signals. 
+  if (rf69.available()) {
+     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+     uint8_t len = sizeof(buf);
+     if (rf69.recv(buf, &len)) {
+       buf[len] = 0;
+       velo = buf[0];
+       dist = buf[1];
+        // clear display and reset cursor
+        display.clearDisplay();
+        display.setCursor(0, 0);
+
+        // send the pulse distance to the OLED and display it
+        display.print("Total Distance Traveled: ");
+        display.print(dist);
+        display.println(" m");
+
+        display.setCursor(30, 30);
+        display.print("Velocity: ");
+        display.print(velo);
+        display.println(" cm/s");
+        display.display();
+        
+        // wait half a second before making another reading
+        //delay(500);
+      }   
+    }
+
   //Read the A2 and A3 pins and convert them to bytes
   LR = analogRead(A2)/4; //voltage signal ranging from 0 to 255
   FB = analogRead(A3)/4; 

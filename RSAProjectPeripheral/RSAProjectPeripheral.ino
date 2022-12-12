@@ -20,6 +20,17 @@
 // Instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
+//this code is going to calculate the angular velocity from the left motor encoders and display it on the LED
+volatile bool encoderA = false; //these two booleans will determine whether the two encoder signals are HIGH or LOW. 
+volatile bool encoderB = false;
+volatile long counter = 0; //will track the relative position of encoder A
+volatile float radius = 3.5; //radius of wheel in cm
+volatile float deltaT; //time elapsed between every half cycle
+volatile float startTime = 0; //time in which cycle begins
+volatile float omega; //angular velocity in rad/s
+volatile float velocity; //cm/s
+volatile float distance = 0; //m
+
 // pins for H Bridge (assuming EN1 is left motor and EN2 is right motor)
 const int input1 = 10;
 const int input2 = 9;
@@ -32,6 +43,10 @@ const int EN2 = 6;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+
+  attachInterrupt(0, encoderChangeA, CHANGE); //this interrupt is triggered when encoder A changes to HIGH or LOW.
+  attachInterrupt(1, encoderChangeB, CHANGE); //This interrupt is triggered when encoder B changes to HIGH or LOW. 
+  
   pinMode(input1, OUTPUT); //inputs 1 and 2 control motor direction. 
   pinMode(input2, OUTPUT);
   pinMode(EN1, OUTPUT); //pwm signal that controls motor speed
@@ -64,7 +79,7 @@ void loop() {
   int enableSignalOne;
   int enableSignalTwo;
  unsigned long startTime = millis();
- while (1) {
+ //while (1) {
    if (rf69.available()) {
      uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
      uint8_t len = sizeof(buf);
@@ -94,5 +109,51 @@ void loop() {
        break;
      }
    }
- }
+  Serial.print(counter); //prints the encoder position repeatedly
+  Serial.print("     ");
+  Serial.print(velocity);
+  Serial.print("     ");
+  Serial.println(distance);
+  delay(10);
+  if (abs(micros() - startTime) > 250000) {
+    velocity = 0;
+  }
+ //}
+
+ //these lines transmit the velocity and distance measurements back to the controller.
+ char radiopacket[2] = {velocity, distance}
+ rfTransceiver.send((uint8_t *)radiopacket, sizeof(radiopacket));
+ rfTransceiver.waitPacketSent();
+ delay(25);
 }
+
+
+void encoderChangeA () {
+  deltaT = micros() - startTime;
+  startTime = micros();
+  omega = 3.14159/120/(deltaT/1000000);
+  velocity = omega*radius;
+  
+  if (encoderA != encoderB) { //checks whether both encoders are HIGH or LOW.
+    counter++; //if the encoder signals are not equal, then the motor is spinning in a certain direction. counter increases.
+    
+  }
+  else { //if the encoder signals are equal, the motor is spinning in the opposite direction. counter decreases. 
+    counter--;
+    
+  }
+  encoderA = !encoderA; //changes the boolean to match the measured signal change
+  distance = counter*3.14*(radius/100)/240; //calculates distance the car has travelled
+}
+
+void encoderChangeB () {
+  if (encoderA == encoderB) {
+    counter++;
+  }
+  else {
+    counter--;
+  }
+  encoderB = !encoderB; //changes the boolean to match the measured signal change
+  distance = counter*3.14*(radius/100)/240; //calculates distance the car has travelled
+}
+
