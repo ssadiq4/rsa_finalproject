@@ -17,19 +17,19 @@
 
 // Declaration for SSD1306 display connected using software SPI:
 //double check all of your pinouts!
-#define OLED_PICO   5
-#define OLED_CLK    6 
-#define OLED_DC     3 
-#define OLED_CS     2 
-#define OLED_RESET  4 
+#define OLED_PICO   6
+#define OLED_CLK    7 
+#define OLED_DC     4 
+#define OLED_CS     3 
+#define OLED_RESET  5 
 Adafruit_SSD1306 display(OLED_PICO, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS); 
 
 float velo;
 float dist;
 
-const int CS_pin = 7;
+const int CS_pin = 10;
 const int INT_pin = 2;
-const int RST_pin = 8;
+const int RST_pin = 9;
 
 RH_RF69 rfTransceiver(CS_pin, INT_pin); //creates transceiver object
 
