@@ -106,7 +106,6 @@ void loop() {
        } // push motor backwards if forward-back signal is negative
        analogWrite(EN1, enableSignalOne);
        analogWrite(EN2, enableSignalTwo);
-       break;
      }
    }
   Serial.print(counter); //prints the encoder position repeatedly
@@ -121,9 +120,9 @@ void loop() {
  //}
 
  //these lines transmit the velocity and distance measurements back to the controller.
- char radiopacket[2] = {velocity, distance}
- rfTransceiver.send((uint8_t *)radiopacket, sizeof(radiopacket));
- rfTransceiver.waitPacketSent();
+ char radiopacket[2] = {velocity, distance };
+ rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
+ rf69.waitPacketSent();
  delay(25);
 }
 
