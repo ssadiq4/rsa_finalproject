@@ -59,6 +59,9 @@ void setup() {
   if (!rf69.init()) {
     Serial.println("RFM69 radio RX init failed");
   }
+  else {
+    Serial.println("The initialization was successful");
+  }
   if (!rf69.setFrequency(RF69_FREQ)) {
     Serial.println("setFrequency failed");
   }
@@ -75,12 +78,12 @@ void loop() {
   unsigned long startTime = micros();
   while (micros() - startTime < 500) {
   char radiopacket[2] = {velocity, distance};
-  Serial.println("sending");
+  //Serial.println("sending");
   rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
   rf69.waitPacketSent();
   }; 
   while (1) {
-    Serial.println("in loop");
+//    Serial.println("in loop");
     if (rf69.available()) {
       uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
       uint8_t len = sizeof(buf);
@@ -89,11 +92,11 @@ void loop() {
         left = buf[0];
         right = buf[1];
         FB = buf[2];
-        Serial.print(left);
-        Serial.print("      ");
-        Serial.print(right);
-        Serial.print("      ");
-        Serial.println(FB);
+//        Serial.print(left);
+//        Serial.print("      ");
+//        Serial.print(right);
+//        Serial.print("      ");
+//        Serial.println(FB);
         if (FB > 0) {
           digitalWrite(input14, HIGH);
           digitalWrite(input23, LOW);
@@ -119,9 +122,9 @@ void loop() {
   if ((velocity > 0) & (distance > 0)) {
   //these lines transmit the velocity and distance measurements back to the controller.
   char radiopacket[2] = {velocity, distance};
-  Serial.println("sending");
+  //Serial.println("sending");
   rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
-  Serial.println(radiopacket);
+  //Serial.println(radiopacket);
   rf69.waitPacketSent();
   }
   // if (rf69.available()) {
