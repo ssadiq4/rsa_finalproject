@@ -100,11 +100,11 @@ void loop() {
 
   //these lines transmit the data. We're gonna try 1 character for now.
   char radiopacket[3] = {left, right, FB};
-//  Serial.print(left);
-//  Serial.print("     ");
-//  Serial.print(right);
-//  Serial.print("     ");
-//  Serial.println(FB);
+  Serial.print(left);
+  Serial.print("     ");
+  Serial.print(right);
+  Serial.print("     ");
+  Serial.println(FB);
   FB = constrain(FB, 0, 255);
   rfTransceiver.send((uint8_t *)radiopacket, sizeof(radiopacket));
   rfTransceiver.waitPacketSent();
