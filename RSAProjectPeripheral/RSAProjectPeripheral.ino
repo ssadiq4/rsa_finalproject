@@ -28,8 +28,8 @@ volatile float radius = 3.5;   //radius of wheel in cm
 volatile float deltaT;         //time elapsed between every half cycle
 volatile float startTime = 0;  //time in which cycle begins
 volatile float omega;          //angular velocity in rad/s
-volatile float velocity;       //cm/s
-volatile float distance = 0;   //m
+volatile float velocity = 1;       //cm/s
+volatile float distance = 1;   //m
 
 // pins for H Bridge (assuming EN1 is left motor and EN2 is right motor)
 const int input14 = 8;
@@ -73,7 +73,14 @@ void loop() {
   int enableSignalOne;
   int enableSignalTwo;
   unsigned long startTime = micros();
+  while (micros() - startTime < 500) {
+  char radiopacket[2] = {velocity, distance};
+  Serial.println("sending");
+  rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
+  rf69.waitPacketSent();
+  }; 
   while (1) {
+    Serial.println("in loop");
     if (rf69.available()) {
       uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
       uint8_t len = sizeof(buf);
@@ -102,17 +109,37 @@ void loop() {
         break;
       }
     }
+    if (abs(micros() - startTime) > 250000) {break;}
   }
   if (abs(micros() - startTime) > 250000) {
     velocity = 0;
   }
+  char reception;
 
+  if ((velocity > 0) & (distance > 0)) {
+  //these lines transmit the velocity and distance measurements back to the controller.
+  char radiopacket[2] = {velocity, distance};
+  Serial.println("sending");
+  rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
+  Serial.println(radiopacket);
+  rf69.waitPacketSent();
+  }
+  // if (rf69.available()) {
+  //     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+  //     uint8_t len = sizeof(buf);
+  //     if (rf69.recv(buf, &len)) {
+  //       buf[len] = 0;
+  //       reception = buf[0]; 
+  //       Serial.println(reception);
+  //       if (reception != NULL) {
+  //         break;
+  //       }
+  //       else {continue;}
+  //       reception = NULL;
+  //     }
+  //   }
+  // }
 
-  // //these lines transmit the velocity and distance measurements back to the controller.
-  // char radiopacket[2] = { velocity, distance };
-  // rf69.send((uint8_t *)radiopacket, sizeof(radiopacket));
-  // rf69.waitPacketSent();
-  // delay(5);
 }
 
 void encoderChange() {
