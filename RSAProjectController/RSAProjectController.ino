@@ -100,15 +100,15 @@ void loop() {
 
   //these lines transmit the data. We're gonna try 1 character for now.
   char radiopacket[3] = {left, right, FB};
-  Serial.print(left);
-  Serial.print("     ");
-  Serial.print(right);
-  Serial.print("     ");
-  Serial.println(FB);
+//  Serial.print(left);
+//  Serial.print("     ");
+//  Serial.print(right);
+//  Serial.print("     ");
+//  Serial.println(FB);
   FB = constrain(FB, 0, 255);
   rfTransceiver.send((uint8_t *)radiopacket, sizeof(radiopacket));
   rfTransceiver.waitPacketSent();
-  Serial.println("Packet was sent");
+//  Serial.println("Packet was sent");
 
    unsigned long startTime = millis();
    while (1) {
@@ -117,7 +117,7 @@ void loop() {
        uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
        uint8_t len = sizeof(buf);
        if (rfTransceiver.recv(buf, &len)) {
-        Serial.println("a packet was received, Pikachu");
+//        Serial.println("a packet was received, Pikachu");
         char radio[] = {1};
         rfTransceiver.send((uint8_t *)radio, sizeof(radio));
          buf[len] = 0;
