@@ -29,7 +29,7 @@ volatile float deltaT;         //time elapsed between every half cycle
 volatile float startTime = 0;  //time in which cycle begins
 volatile float omega;          //angular velocity in rad/s
 volatile float velocity = 1;       //cm/s
-volatile float distance = 1;   //m
+volatile float distance = 0;   //m
 
 // pins for H Bridge (assuming EN1 is left motor and EN2 is right motor)
 const int input14 = 8;
@@ -112,7 +112,7 @@ void loop() {
         break;
       }
     }
-    if (abs(micros() - startTime) > 250000) {break;}
+    // if (abs(micros() - startTime) > 250000) {break;}
   }
   if (abs(micros() - startTime) > 250000) {
     velocity = 0;
